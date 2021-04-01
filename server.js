@@ -26,23 +26,61 @@ client.connect(err => {
     const ordersCollection = client.db("FoodBasket").collection("orders");
 
 
+    // Get Products from database
     app.get('/products', (req, res) => {
         productsCollection.find()
         .toArray((err, items) => {
             res.send(items);
         })
-    })
+    });
 
-    // Save products on database
+    // Save Product on database
     app.post('/addProduct', (req, res) => {
         const newProduct = req.body;
         console.log('adding new event: ', newProduct)
         productsCollection.insertOne(newProduct)
             .then(result => {
-                console.log('inserted count', result.insertedCount);
                 res.send(result.insertedCount > 0)
             })
-    })
+    });
+
+    // Find Product using id and Delete Product from Database
+    app.delete('/deleteProduct/:id', (req, res) => {
+        const id = ObjectID(req.params.id);
+        productsCollection.deleteOne({_id: id})
+        .then(result => {
+            res.send(result.deletedCount > 0)
+        })
+    });
+
+    // Get Product from Database using ID
+    app.get('/products/:id', (req, res) => {
+        const id = ObjectID(req.params.id);
+        productsCollection.find({_id: id})
+        .toArray((err, product) => {
+            res.send(product);
+        })
+    });
+
+     // Confirm Order and Save Order Details To Database
+     app.post('/confirmOrder', (req, res) => {
+        const newOrder = req.body;
+        ordersCollection.insertOne(newOrder)
+          .then(result => {
+            res.send(result.insertedCount > 0);
+          })
+      });
+
+      // Load Products Base On User Email Address
+      app.get('/orders', (req, res) => {
+          console.log(req.query.useremail)
+        const queryEmail = req.query.useremail;
+        ordersCollection.find({ useremail: queryEmail })
+              .toArray((err, product) => {
+                res.send(product);
+              })
+      })
+
 });
 
 
